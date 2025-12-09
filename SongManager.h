@@ -4,9 +4,9 @@
  *
  * This code is based upon three libraries written by Phil Schatzmann:
  * They are:
- *   1. ESP32-A2DP
- *   2. arduino-audio-tools
- *   3. arduino-libhelix
+ * 1. ESP32-A2DP
+ * 2. arduino-audio-tools
+ * 3. arduino-libhelix
  *
  * Written by: Craig A. Lindley and Phil Schatzmann
  * Last Update: 11/06/2025
@@ -28,8 +28,8 @@
 #include "AudioTools/AudioLibs/A2DPStream.h"
 #include "AudioTools/AudioCodecs/CodecMP3Helix.h"
 
-// Source doesn't control which song is played, the player does now
-AudioSourceSDFAT source("", "");
+// FIX: Explicitly define template types <SdFat32, File32> to match your SD configuration
+AudioSourceSDFAT<SdFat32, File32> source("", "");
 A2DPStream out;
 MP3DecoderHelix decoder;
 MP3AudioPlayer player(source, out, decoder);
