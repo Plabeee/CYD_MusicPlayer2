@@ -43,7 +43,7 @@ jobs:
       # (Uncomment and modify this section if your sketch has dependencies)
       - name: Install Libraries
         run: |
-           arduino-cli lib install "SdFat" "Adafruit GFX Library"
+           arduino-cli lib install "SdFat" "Adafruit GFX Library" "FreeRTOS"
       #     arduino-cli lib install "WiFi"
       #     arduino-cli lib install "ArduinoJson"
 
