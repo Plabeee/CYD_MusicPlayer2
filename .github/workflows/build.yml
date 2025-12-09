@@ -30,44 +30,47 @@ jobs:
         run: arduino-cli core update-index
 
       # 4. Install the board platform
-      # FIX 1: We explicitly install version 2.0.17.
-      # ESP32 Core 3.x broke compatibility with many existing audio libraries.
+      # FIX 1: Explicitly install version 2.0.17 for audio compatibility.
       - name: Install ESP32 Core (v2.0.17)
         run: arduino-cli core install esp32:esp32@2.0.17
 
       # 5. Install Registry Libraries
-      # FIX 2: Removed "FreeRTOS". It is built-in to the ESP32 Core.
       - name: Install Libraries
         run: |
-           arduino-cli lib install "SdFat" "Adafruit GFX Library" "MultiButton"
+           arduino-cli lib install "SdFat" "Adafruit GFX Library"
 
-      # 5.1 Install Custom Libraries via Git
-      # FIX 3: Use git clone for cleaner folder structure (removes '-main' suffix)
-      # and ensures we get the latest code.
-      - name: Install Custom Libraries via Git
+      # 5.1 Install Custom Libraries from ZIP (Reverted to Tags)
+      # FIX 2: Reverted to specific tags because 'main' branch introduced breaking changes
+      # to AudioSourceSDFAT that conflict with your code.
+      - name: Install Custom Libraries from ZIP
         run: |
           mkdir -p $HOME/Arduino/libraries
           cd $HOME/Arduino/libraries
 
-          # Repo 1: arduino-audio-tools
-          # We clone into specific folder names to ensure standard inclusion
-          git clone -b main --depth 1 https://github.com/pschatzmann/arduino-audio-tools.git audio-tools
+          # Repo 1: arduino-audio-tools (v1.2.1)
+          wget https://github.com/pschatzmann/arduino-audio-tools/archive/refs/tags/v1.2.1.zip -O lib1.zip
+          unzip -o lib1.zip
+          rm lib1.zip
 
-          # Repo 2: ESP32-A2DP
-          git clone -b main --depth 1 https://github.com/pschatzmann/ESP32-A2DP.git ESP32-A2DP
+          # Repo 2: ESP32-A2DP (v1.8.8)
+          wget https://github.com/pschatzmann/ESP32-A2DP/archive/refs/tags/v1.8.8.zip -O lib2.zip
+          unzip -o lib2.zip
+          rm lib2.zip
 
-          # Repo 3: arduino-libhelix
-          git clone -b main --depth 1 https://github.com/pschatzmann/arduino-libhelix.git arduino-libhelix
+          # Repo 3: arduino-libhelix (v0.9.2)
+          wget https://github.com/pschatzmann/arduino-libhelix/archive/refs/tags/v0.9.2.zip -O lib3.zip
+          unzip -o lib3.zip
+          rm lib3.zip
                 
       # 6. Compile the sketch
-      # FIX 4: Added -DESP32 -DARDUINO_ARCH_ESP32 to build.extra_flags
-      # This ensures the libraries know they are running on an ESP32, preventing
-      # the "FreeRTOS.h" include error.
+      # FIX 3: 
+      # - Added -DESP32 -DARDUINO_ARCH_ESP32 to fix "FreeRTOS.h" error in v1.2.1 library.
+      # - Added -DSDFAT_FILE_TYPE=3 to force 'File' typedef to 'File32' to match your code's usage.
       - name: Compile Sketch
         run: |
           arduino-cli compile \
             --fqbn esp32:esp32:esp32 \
-            --build-property "build.extra_flags=-DESP32 -DARDUINO_ARCH_ESP32 -DUSER_SETUP_LOADED -DILI9341_2_DRIVER -DTFT_WIDTH=240 -DTFT_HEIGHT=320 -DTFT_MOSI=13 -DTFT_MISO=12 -DTFT_SCLK=14 -DTFT_CS=15 -DTFT_DC=2 -DTFT_RST=-1 -DTFT_BL=21 -DTFT_BACKLIGHT_ON=HIGH -DSPI_FREQUENCY=55000000 -DSPI_READ_FREQUENCY=20000000 -DSPI_TOUCH_FREQUENCY=2500000" \
+            --build-property "build.extra_flags=-DESP32 -DARDUINO_ARCH_ESP32 -DSDFAT_FILE_TYPE=3 -DUSER_SETUP_LOADED -DILI9341_2_DRIVER -DTFT_WIDTH=240 -DTFT_HEIGHT=320 -DTFT_MOSI=13 -DTFT_MISO=12 -DTFT_SCLK=14 -DTFT_CS=15 -DTFT_DC=2 -DTFT_RST=-1 -DTFT_BL=21 -DTFT_BACKLIGHT_ON=HIGH -DSPI_FREQUENCY=55000000 -DSPI_READ_FREQUENCY=20000000 -DSPI_TOUCH_FREQUENCY=2500000" \
             --output-dir ./build \
             ./CYD_MusicPlayer2.ino
       
