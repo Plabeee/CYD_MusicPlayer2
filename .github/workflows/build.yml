@@ -41,24 +41,26 @@ jobs:
         run: |
            arduino-cli lib install "SdFat" "Adafruit GFX Library"
 
-      # 5.1 Install Custom Libraries from ZIP Release Tags
+      # 5.1 Install Custom Libraries from ZIP (Main Branch)
+      # FIX 3: Changed from tags (e.g., v1.2.1) to 'main' branch.
+      # These libraries are active and tagged versions often have missing include fixes.
       - name: Install Custom Libraries from ZIP
         run: |
           mkdir -p $HOME/Arduino/libraries
           cd $HOME/Arduino/libraries
 
-          # Repo 1: arduino-audio-tools
-          wget https://github.com/pschatzmann/arduino-audio-tools/archive/refs/tags/v1.2.1.zip -O lib1.zip
+          # Repo 1: arduino-audio-tools (Use main branch)
+          wget https://github.com/pschatzmann/arduino-audio-tools/archive/refs/heads/main.zip -O lib1.zip
           unzip -o lib1.zip
           rm lib1.zip
 
-          # Repo 2: ESP32-A2DP
-          wget https://github.com/pschatzmann/ESP32-A2DP/archive/refs/tags/v1.8.8.zip -O lib2.zip
+          # Repo 2: ESP32-A2DP (Use main branch)
+          wget https://github.com/pschatzmann/ESP32-A2DP/archive/refs/heads/main.zip -O lib2.zip
           unzip -o lib2.zip
           rm lib2.zip
 
-          # Repo 3: arduino-libhelix
-          wget https://github.com/pschatzmann/arduino-libhelix/archive/refs/tags/v0.9.2.zip -O lib3.zip
+          # Repo 3: arduino-libhelix (Use main branch)
+          wget https://github.com/pschatzmann/arduino-libhelix/archive/refs/heads/main.zip -O lib3.zip
           unzip -o lib3.zip
           rm lib3.zip
                 
