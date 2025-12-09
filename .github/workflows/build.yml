@@ -37,7 +37,7 @@ jobs:
       # 5. Install Registry Libraries
       - name: Install Libraries
         run: |
-           arduino-cli lib install "SdFat" "Adafruit GFX Library"
+           arduino-cli lib install "SdFat" "Adafruit GFX Library" "MultiButton"
 
       # 5.1 Install Custom Libraries from ZIP (Reverted to Tags)
       # FIX 2: Reverted to specific tags because 'main' branch introduced breaking changes
