@@ -1,0 +1,116 @@
+# This workflow builds your Arduino sketch and creates a public release
+# with the compiled .bin file.
+
+name: Build and Release Firmware
+
+on:
+
+  push:
+    branches:
+      - 'build'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    # This permission is required for the action to create a GitHub Release
+    permissions:
+      contents: write
+
+    steps:
+      # 1. Check out your code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Set up the Arduino CLI (Command Line Interface)
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      # 3. Update the board index
+      - name: Update Core Index
+        run: arduino-cli core update-index
+
+      # 4. Install the board platform (e.g., esp32, arduino:avr)
+      # ---!!! IMPORTANT: CHANGE THIS FOR YOUR BOARD !!!---
+      # Example for ESP32:
+      - name: Install ESP32 Core
+        run: arduino-cli core install esp32:esp32
+      # Example for Arduino Uno (AVR):
+      # - name: Install AVR Core
+      #   run: arduino-cli core install arduino:avr
+
+      # 5. Install any libraries you need
+      # (Uncomment and modify this section if your sketch has dependencies)
+      - name: Install Libraries
+        run: |
+           arduino-cli lib install "SdFat" "Adafruit GFX Library"
+      #     arduino-cli lib install "WiFi"
+      #     arduino-cli lib install "ArduinoJson"
+
+      # 5.1 Install Custom Libraries from ZIP Release Tags
+      - name: Install Custom Libraries from ZIP
+        run: |
+          # Create the libraries directory
+          mkdir -p $HOME/Arduino/libraries
+          cd $HOME/Arduino/libraries
+
+          # Repo 1: Download and Unzip
+          wget https://github.com/pschatzmann/arduino-audio-tools/archive/refs/tags/v1.2.1.zip -O lib1.zip
+          unzip -o lib1.zip
+          rm lib1.zip
+
+          # Repo 2: Download and Unzip
+          wget https://github.com/pschatzmann/ESP32-A2DP/archive/refs/tags/v1.8.8.zip -O lib2.zip
+          unzip -o lib2.zip
+          rm lib2.zip
+
+          # Repo 3: Download and Unzip
+          wget https://github.com/pschatzmann/arduino-libhelix/archive/refs/tags/v0.9.2.zip -O lib3.zip
+          unzip -o lib3.zip
+          rm lib3.zip
+                
+      # 6. Compile the sketch
+      # ---!!! IMPORTANT: CHANGE THESE VALUES !!!---
+      # --fqbn: Your Fully Qualified Board Name.
+      # ./MySketch: The path to your sketch (the folder containing your .ino file)
+      - name: Compile Sketch
+        run: |
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32 \
+            --build-property "build.extra_flags=-DUSER_SETUP_LOADED -DILI9341_2_DRIVER -DTFT_WIDTH=240 -DTFT_HEIGHT=320 -DTFT_MOSI=13 -DTFT_MISO=12 -DTFT_SCLK=14 -DTFT_CS=15 -DTFT_DC=2 -DTFT_RST=-1 -DTFT_BL=21 -DTFT_BACKLIGHT_ON=HIGH -DSPI_FREQUENCY=55000000 -DSPI_READ_FREQUENCY=20000000 -DSPI_TOUCH_FREQUENCY=2500000" \
+            --output-dir ./build \
+            ./CYD_MusicPlayer2.ino
+      
+      # 7. Create or Update the "latest" Release
+      # This step uses the GitHub CLI (gh) which is pre-installed.
+      # It tries to create a release. If it fails (because "latest" exists),
+      # it deletes and re-creates it, ensuring the "latest" tag
+      # always points to the newest commit on 'main'.
+      - name: Create or Update "latest" Release
+        env:
+          # The GITHUB_TOKEN is automatically provided by Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Try to create the release. This will tag the current commit as "latest"
+          # If it fails (because "latest" tag/release already exists), it will exit with an error.
+          gh release create latest \
+            --title "Latest Build (main)" \
+            --notes "Automatic build from the main branch." \
+            --latest \
+            --prerelease=false \
+            --draft=false \
+            ./build/*.bin ./build/*.elf ./build/*.map \
+          || \
+          ( \
+            echo "Release 'latest' already exists. Re-creating..." && \
+            # Delete the existing release. This also deletes the "latest" tag.
+            gh release delete latest -y && \
+            # Re-create the release, which will tag the current commit as "latest"
+            gh release create latest \
+              --title "Latest Build (main)" \
+              --notes "Automatic build from the main branch." \
+              --latest \
+              --prerelease=false \
+              --draft=false \
+              ./build/*.bin ./build/*.elf ./build/*.map \
+          )
