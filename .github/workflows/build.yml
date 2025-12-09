@@ -39,7 +39,7 @@ jobs:
       # FIX 2: Removed "FreeRTOS". It is built-in to the ESP32 Core.
       - name: Install Libraries
         run: |
-           arduino-cli lib install "SdFat" "Adafruit GFX Library"
+           arduino-cli lib install "SdFat" "Adafruit GFX Library" "MultiButton"
 
       # 5.1 Install Custom Libraries via Git
       # FIX 3: Use git clone for cleaner folder structure (removes '-main' suffix)
