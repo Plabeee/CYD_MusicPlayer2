@@ -41,35 +41,33 @@ jobs:
         run: |
            arduino-cli lib install "SdFat" "Adafruit GFX Library"
 
-      # 5.1 Install Custom Libraries from ZIP (Main Branch)
-      # FIX 3: Changed from tags (e.g., v1.2.1) to 'main' branch.
-      # These libraries are active and tagged versions often have missing include fixes.
-      - name: Install Custom Libraries from ZIP
+      # 5.1 Install Custom Libraries via Git
+      # FIX 3: Use git clone for cleaner folder structure (removes '-main' suffix)
+      # and ensures we get the latest code.
+      - name: Install Custom Libraries via Git
         run: |
           mkdir -p $HOME/Arduino/libraries
           cd $HOME/Arduino/libraries
 
-          # Repo 1: arduino-audio-tools (Use main branch)
-          wget https://github.com/pschatzmann/arduino-audio-tools/archive/refs/heads/main.zip -O lib1.zip
-          unzip -o lib1.zip
-          rm lib1.zip
+          # Repo 1: arduino-audio-tools
+          # We clone into specific folder names to ensure standard inclusion
+          git clone -b main --depth 1 https://github.com/pschatzmann/arduino-audio-tools.git audio-tools
 
-          # Repo 2: ESP32-A2DP (Use main branch)
-          wget https://github.com/pschatzmann/ESP32-A2DP/archive/refs/heads/main.zip -O lib2.zip
-          unzip -o lib2.zip
-          rm lib2.zip
+          # Repo 2: ESP32-A2DP
+          git clone -b main --depth 1 https://github.com/pschatzmann/ESP32-A2DP.git ESP32-A2DP
 
-          # Repo 3: arduino-libhelix (Use main branch)
-          wget https://github.com/pschatzmann/arduino-libhelix/archive/refs/heads/main.zip -O lib3.zip
-          unzip -o lib3.zip
-          rm lib3.zip
+          # Repo 3: arduino-libhelix
+          git clone -b main --depth 1 https://github.com/pschatzmann/arduino-libhelix.git arduino-libhelix
                 
       # 6. Compile the sketch
+      # FIX 4: Added -DESP32 -DARDUINO_ARCH_ESP32 to build.extra_flags
+      # This ensures the libraries know they are running on an ESP32, preventing
+      # the "FreeRTOS.h" include error.
       - name: Compile Sketch
         run: |
           arduino-cli compile \
             --fqbn esp32:esp32:esp32 \
-            --build-property "build.extra_flags=-DUSER_SETUP_LOADED -DILI9341_2_DRIVER -DTFT_WIDTH=240 -DTFT_HEIGHT=320 -DTFT_MOSI=13 -DTFT_MISO=12 -DTFT_SCLK=14 -DTFT_CS=15 -DTFT_DC=2 -DTFT_RST=-1 -DTFT_BL=21 -DTFT_BACKLIGHT_ON=HIGH -DSPI_FREQUENCY=55000000 -DSPI_READ_FREQUENCY=20000000 -DSPI_TOUCH_FREQUENCY=2500000" \
+            --build-property "build.extra_flags=-DESP32 -DARDUINO_ARCH_ESP32 -DUSER_SETUP_LOADED -DILI9341_2_DRIVER -DTFT_WIDTH=240 -DTFT_HEIGHT=320 -DTFT_MOSI=13 -DTFT_MISO=12 -DTFT_SCLK=14 -DTFT_CS=15 -DTFT_DC=2 -DTFT_RST=-1 -DTFT_BL=21 -DTFT_BACKLIGHT_ON=HIGH -DSPI_FREQUENCY=55000000 -DSPI_READ_FREQUENCY=20000000 -DSPI_TOUCH_FREQUENCY=2500000" \
             --output-dir ./build \
             ./CYD_MusicPlayer2.ino
       
