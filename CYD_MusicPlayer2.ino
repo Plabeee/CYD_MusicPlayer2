@@ -35,7 +35,24 @@
 
 #include <Adafruit_GFX.h>
 
+// ------------------------------
+// Feature toggles (flash savings)
+// ------------------------------
+// If your build is failing with:
+//   "text section exceeds available space in board"
+// you can either:
+//   1) Select a larger ESP32 partition scheme (recommended), e.g. Tools -> Partition Scheme -> "Huge APP"
+//   2) Or disable optional features below to reduce code size.
+//
+// 1 = include WiFi/FTP remote access support
+// 0 = compile without WiFi/FTP code (saves flash)
+#ifndef ENABLE_FTP_REMOTE
+#define ENABLE_FTP_REMOTE 1
+#endif
+
+#if ENABLE_FTP_REMOTE
 #include "Secrets.h"
+#endif
 
 #include "SongManager.h"
 #include "BluetoothA2DPSource.h"
@@ -45,7 +62,10 @@
 #include "MultiButton.h"
 #include "ButtonManager.h"
 #include "ListBox.h"
+
+#if ENABLE_FTP_REMOTE
 #include "FTPUploader.h"
+#endif
 
 // Application title
 #define APP_TITLE "CYD BT Music Player 2"
@@ -103,8 +123,10 @@ ButtonManager bm(&lcd, &touch);
 // Pointer to ListBox instance
 ListBox *listBox;
 
+#if ENABLE_FTP_REMOTE
 // Create FTPUploader instance
 FTPUploader ftpUploader;
+#endif
 
 // Create SongManager instance
 SongManager songManager;
@@ -118,7 +140,10 @@ uint32_t displayTimeout;
 boolean playing;
 boolean looping;
 boolean skipInput;
+
+#if ENABLE_FTP_REMOTE
 boolean uploading;
+#endif
 
 enum PLAY_MODE { SEQUENTIAL,
                  RANDOM };
@@ -360,6 +385,7 @@ void displayWiFiScreen() {
   lcd.drawCenteredText(calcLineOffset(0), "WiFi Connecting");
 }
 
+#if ENABLE_FTP_REMOTE
 void displayUploadScreen() {
 
   // Clear screen area
@@ -374,6 +400,7 @@ void displayUploadScreen() {
   lcd.drawCenteredText(calcLineOffset(3),
                        ftpUploader.getIPAddressString().c_str());
 }
+#endif
 
 // Now playing screen
 void displaySongNowPlayingScreen(const char *songName) {
@@ -535,7 +562,9 @@ void setup() {
   playing = false;
   looping = false;
   skipInput = false;
+#if ENABLE_FTP_REMOTE
   uploading = false;
+#endif
 
   // Turn off the wifi to possibly save battery life
   WiFi.mode(WIFI_OFF);
@@ -583,7 +612,9 @@ void setup() {
   operations.push_back(std::string("Sequential Play"));
   operations.push_back(std::string("Random Play"));
   operations.push_back(std::string("Shuffle"));
+#if ENABLE_FTP_REMOTE
   operations.push_back(std::string("Remote Access"));
+#endif
 
   // Read in all available artists
   if (!populateArtistsVector()) {
@@ -607,10 +638,12 @@ void loop() {
   // Update button state
   bm.update();
 
+#if ENABLE_FTP_REMOTE
   if (uploading) {
     // Feed the FTP server
     ftpUploader.handleFTP();
   }
+#endif
 
   if (playing) {
     // Feed the BT driver
@@ -716,11 +749,13 @@ void loop() {
             // Next state
             state = SH_PICKANDPLAY;
             break;
+#if ENABLE_FTP_REMOTE
           case 4:
             // Remote access selected
             // Next state
             state = RA_WIFI_CONNECT;
             break;
+#endif
         }
       }
       break;
@@ -1288,6 +1323,7 @@ void loop() {
       }
       break;
 
+#if ENABLE_FTP_REMOTE
     case RA_WIFI_CONNECT:
       {
         // Display the WiFi screen
@@ -1339,5 +1375,6 @@ void loop() {
         }
       }
       break;
+#endif
   };
 }
