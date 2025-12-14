@@ -396,7 +396,7 @@ private:
       else {
         client.println("150 Accepted data connection");
         uint16_t nm = 0;
-        File root = _ptrSd->open(cwdName);
+        File32 root = _ptrSd->open(cwdName);
         if (!root) {
           client.println("550 Can't open directory " + String(cwdName));
           // return;
@@ -406,7 +406,7 @@ private:
           //    return;
           // }
 
-          File file = root.openNextFile();
+          File32 file = root.openNextFile();
           while (file) {
             if (file.isDirectory()) {
               file.getName(NAME_BUFFER, sizeof(NAME_BUFFER));
@@ -441,11 +441,11 @@ private:
       else {
         client.println("150 Accepted data connection");
         uint16_t nm = 0;
-        File root = _ptrSd->open(cwdName);
+        File32 root = _ptrSd->open(cwdName);
         if (!root) {
           client.println("550 Can't open directory " + String(cwdName));
         } else {
-          File file = root.openNextFile();
+          File32 file = root.openNextFile();
           while (file) {
             // Get filename then remove all references to its path
             file.getName(NAME_BUFFER, sizeof(NAME_BUFFER));
@@ -478,12 +478,12 @@ private:
         client.println("150 Accepted data connection");
         uint16_t nm = 0;
 
-        File root = _ptrSd->open(cwdName);
+        File32 root = _ptrSd->open(cwdName);
         if (!root) {
           client.println("550 Can't open directory " + String(cwdName));
         } else {
 
-          File file = root.openNextFile();
+          File32 file = root.openNextFile();
           while (file) {
             file.getName(NAME_BUFFER, sizeof(NAME_BUFFER));
             data.println(NAME_BUFFER);
@@ -916,7 +916,7 @@ private:
   WiFiClient client;
   WiFiClient data;
 
-  File file;
+  File32 file;
 
   boolean dataPassiveConn;
   uint16_t dataPort;

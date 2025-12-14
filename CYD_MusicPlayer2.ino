@@ -194,14 +194,14 @@ boolean populateArtistsVector() {
   artists.clear();
 
   // Open the root directory of SD card
-  File root = sd.open("/");
+  File32 root = sd.open("/");
   if (!root) {
     Serial.println("\nFailed to open directory\n\n");
     return false;
   }
 
   // Populate listbox with directory/artist names
-  File file = root.openNextFile();
+  File32 file = root.openNextFile();
   while (file) {
     file.getName(NAME_BUFFER, sizeof(NAME_BUFFER));
 
@@ -231,14 +231,14 @@ boolean populateArtistAlbumsVector(char *artistPath) {
   albums.clear();
 
   // Open the root directory of SD card
-  File root = sd.open(artistPath);
+  File32 root = sd.open(artistPath);
   if (!root) {
     Serial.println("\nFailed to open directory\n\n");
     return false;
   }
 
   // Populate vector with directory/artist/album names
-  File file = root.openNextFile();
+  File32 file = root.openNextFile();
   while (file) {
     file.getName(NAME_BUFFER, sizeof(NAME_BUFFER));
     if (file.isDirectory() && !startsWith(".", NAME_BUFFER)) {
@@ -267,14 +267,14 @@ boolean populateArtistAlbumSongsVector(char *albumPath) {
   songs.clear();
 
   // Open the root directory of SD card
-  File root = sd.open(albumPath);
+  File32 root = sd.open(albumPath);
   if (!root) {
     Serial.println("\nFailed to open directory\n\n");
     return false;
   }
 
   // Populate vector with directory/artist names
-  File file = root.openNextFile();
+  File32 file = root.openNextFile();
   while (file) {
     file.getName(NAME_BUFFER, sizeof(NAME_BUFFER));
     if (!file.isDirectory() && !startsWith(".", NAME_BUFFER)) {
